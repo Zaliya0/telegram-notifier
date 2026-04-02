@@ -1,0 +1,92 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Zalina\\TelegramNotifier\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E280D589-42F7-404D-88E9-D1A63E88F804}|tests\\SimpleApp.Tests\\SimpleApp.Tests.csproj|c:\\users\\zalina\\telegramnotifier\\tests\\simpleapp.tests\\unittest1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E280D589-42F7-404D-88E9-D1A63E88F804}|tests\\SimpleApp.Tests\\SimpleApp.Tests.csproj|solutionrelative:tests\\simpleapp.tests\\unittest1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E280D589-42F7-404D-88E9-D1A63E88F804}|tests\\SimpleApp.Tests\\SimpleApp.Tests.csproj|c:\\users\\zalina\\telegramnotifier\\tests\\simpleapp.tests\\simpleapp.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{E280D589-42F7-404D-88E9-D1A63E88F804}|tests\\SimpleApp.Tests\\SimpleApp.Tests.csproj|solutionrelative:tests\\simpleapp.tests\\simpleapp.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1A19925D-28BA-475D-8EF1-4C751D054F71}|src\\SimpleApp\\SimpleApp.csproj|c:\\users\\zalina\\telegramnotifier\\src\\simpleapp\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1A19925D-28BA-475D-8EF1-4C751D054F71}|src\\SimpleApp\\SimpleApp.csproj|solutionrelative:src\\simpleapp\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1A19925D-28BA-475D-8EF1-4C751D054F71}|src\\SimpleApp\\SimpleApp.csproj|c:\\users\\zalina\\telegramnotifier\\src\\simpleapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1A19925D-28BA-475D-8EF1-4C751D054F71}|src\\SimpleApp\\SimpleApp.csproj|solutionrelative:src\\simpleapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "UnitTest1.cs",
+              "DocumentMoniker": "C:\\Users\\Zalina\\TelegramNotifier\\tests\\SimpleApp.Tests\\UnitTest1.cs",
+              "RelativeDocumentMoniker": "tests\\SimpleApp.Tests\\UnitTest1.cs",
+              "ToolTip": "C:\\Users\\Zalina\\TelegramNotifier\\tests\\SimpleApp.Tests\\UnitTest1.cs",
+              "RelativeToolTip": "tests\\SimpleApp.Tests\\UnitTest1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAD4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-02T09:35:47.032Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "SimpleApp.Tests",
+              "DocumentMoniker": "C:\\Users\\Zalina\\TelegramNotifier\\tests\\SimpleApp.Tests\\SimpleApp.Tests.csproj",
+              "RelativeDocumentMoniker": "tests\\SimpleApp.Tests\\SimpleApp.Tests.csproj",
+              "ToolTip": "C:\\Users\\Zalina\\TelegramNotifier\\tests\\SimpleApp.Tests\\SimpleApp.Tests.csproj",
+              "RelativeToolTip": "tests\\SimpleApp.Tests\\SimpleApp.Tests.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-04-02T09:35:43.641Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Zalina\\TelegramNotifier\\src\\SimpleApp\\Program.cs",
+              "RelativeDocumentMoniker": "src\\SimpleApp\\Program.cs",
+              "ToolTip": "C:\\Users\\Zalina\\TelegramNotifier\\src\\SimpleApp\\Program.cs",
+              "RelativeToolTip": "src\\SimpleApp\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-02T09:35:26.898Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Class1.cs",
+              "DocumentMoniker": "C:\\Users\\Zalina\\TelegramNotifier\\src\\SimpleApp\\Class1.cs",
+              "RelativeDocumentMoniker": "src\\SimpleApp\\Class1.cs",
+              "ToolTip": "C:\\Users\\Zalina\\TelegramNotifier\\src\\SimpleApp\\Class1.cs",
+              "RelativeToolTip": "src\\SimpleApp\\Class1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-02T09:34:03.186Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

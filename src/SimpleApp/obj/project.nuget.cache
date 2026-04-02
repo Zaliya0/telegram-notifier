@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "dds8scMvrE0=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Zalina\\TelegramNotifier\\src\\SimpleApp\\SimpleApp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Zalina\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.24\\microsoft.windowsdesktop.app.ref.8.0.24.nupkg.sha512",
+    "C:\\Users\\Zalina\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.24\\microsoft.aspnetcore.app.ref.8.0.24.nupkg.sha512"
+  ],
+  "logs": []
+}
