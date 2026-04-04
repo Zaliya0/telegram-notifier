@@ -2,7 +2,7 @@ name: Отслеживание прогресса
 
 on:
   schedule:
-    - cron: '0 20 * * 0'
+    - cron: '0 20 * * 0'          # каждое воскресенье в 20:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,21 @@ jobs:
     steps:
       - name: Загружаем репозиторий
         uses: actions/checkout@v4
-      
+
+      # ========== ДИАГНОСТИКА: проверяем секреты ==========
+      - name: 🔍 Проверка секретов Telegram
+        run: |
+          if [ -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
+            echo "✅ TELEGRAM_CHAT_ID задан: ${{ secrets.TELEGRAM_CHAT_ID }}"
+          else
+            echo "❌ TELEGRAM_CHAT_ID НЕ ЗАДАН или пуст!"
+          fi
+          if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ]; then
+            echo "✅ TELEGRAM_BOT_TOKEN задан (первые 5 символов: ${{ secrets.TELEGRAM_BOT_TOKEN }}...)"
+          else
+            echo "❌ TELEGRAM_BOT_TOKEN НЕ ЗАДАН или пуст!"
+          fi
+
       - name: Генерируем статистику
         id: stats
         run: |
@@ -20,44 +34,63 @@ jobs:
           MATH=$((50 + RANDOM % 50))
           PROGRAMMING=$((60 + RANDOM % 40))
           ENGLISH=$((40 + RANDOM % 60))
-          
+
           echo "hours=$HOURS" >> $GITHUB_OUTPUT
           echo "tasks=$TASKS" >> $GITHUB_OUTPUT
           echo "math=$MATH" >> $GITHUB_OUTPUT
           echo "programming=$PROGRAMMING" >> $GITHUB_OUTPUT
           echo "english=$ENGLISH" >> $GITHUB_OUTPUT
-          
+
           if [ $HOURS -ge 25 ]; then
             ACHIEVEMENT="🏆 Супер-студент! Более 25 часов учёбы!"
           elif [ $HOURS -ge 15 ]; then
             ACHIEVEMENT="🎉 Отличная работа! Более 15 часов учёбы!"
           else
-            ACHIEVEMENT="📚 Хороший старт! Можно уделять больше времени"
+            ACHIEVEMENT="💪 Хороший старт! Можно уделять больше времени"
           fi
           echo "achievement=$ACHIEVEMENT" >> $GITHUB_OUTPUT
-      
+
       - name: Формируем отчёт
         id: report
         run: |
-          MESSAGE="*ОТЧЁТ ОБ УЧЁБЕ ЗА НЕДЕЛЮ*"
-          MESSAGE="$MESSAGE%0A%0A${{ steps.stats.outputs.achievement }}"
-          MESSAGE="$MESSAGE%0A%0A*Статистика:*"
-          MESSAGE="$MESSAGE%0A⏱ Часов учёбы: ${{ steps.stats.outputs.hours }}"
-          MESSAGE="$MESSAGE%0A✅ Выполнено задач: ${{ steps.stats.outputs.tasks }}"
-          MESSAGE="$MESSAGE%0A%0A*Прогресс по предметам:*"
-          MESSAGE="$MESSAGE%0A📐 Математика: ${{ steps.stats.outputs.math }}%"
-          MESSAGE="$MESSAGE%0A💻 Программирование: ${{ steps.stats.outputs.programming }}%"
-          MESSAGE="$MESSAGE%0A🇬🇧 Английский: ${{ steps.stats.outputs.english }}%"
-          MESSAGE="$MESSAGE%0A%0A🎯 *Цель на следующую неделю:* Увеличить время учёбы на 10%!"
+          MESSAGE="<b>ОТЧЁТ ОБ УЧЁБЕ ЗА НЕДЕЛЮ</b>%0A%0A${{ steps.stats.outputs.achievement }}%0A%0A<b>Статистика:</b>%0A⏱ Часов учёбы: ${{ steps.stats.outputs.hours }}%0A✅ Выполнено задач: ${{ steps.stats.outputs.tasks }}%0A%0A<b>Прогресс по предметам:</b>%0A📐 Математика: ${{ steps.stats.outputs.math }}%%0A💻 Программирование: ${{ steps.stats.outputs.programming }}%%0A📖 Английский: ${{ steps.stats.outputs.english }}%%0A%0A🎯 <b>Цель на следующую неделю:</b>%0AУвеличить время учёбы на 10%!"
           echo "message=$MESSAGE" >> $GITHUB_OUTPUT
-      
-      - name: Отправляем в Telegram
+
+      # ========== ОТПРАВКА С ДИАГНОСТИКОЙ ==========
+      - name: 📨 Отправляем в Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -d text="${{ steps.report.outputs.message }}" \
-            -d parse_mode="MarkdownV2"
-      
+          if [ -z "$CHAT_ID" ]; then
+            echo "❌ ОШИБКА: CHAT_ID пуст. Проверьте секрет TELEGRAM_CHAT_ID"
+            exit 1
+          fi
+          if [ -z "$BOT_TOKEN" ]; then
+            echo "❌ ОШИБКА: BOT_TOKEN пуст. Проверьте секрет TELEGRAM_BOT_TOKEN"
+            exit 1
+          fi
+          MESSAGE="${{ steps.report.outputs.message }}"
+          if [ -z "$MESSAGE" ]; then
+            echo "❌ ОШИБКА: сообщение пустое"
+            exit 1
+          fi
+          echo "Отправляем сообщение в чат $CHAT_ID..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            -d chat_id="${CHAT_ID}" \
+            -d text="${MESSAGE}" \
+            -d parse_mode="HTML")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          echo "HTTP код ответа: $HTTP_CODE"
+          echo "Тело ответа Telegram: $BODY"
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Сообщение успешно отправлено!"
+          else
+            echo "❌ Ошибка отправки. Код: $HTTP_CODE"
+            exit 1
+          fi
+
       - name: Сохраняем историю прогресса
         run: |
           echo "$(date '+%Y-%m-%d'): Часов: ${{ steps.stats.outputs.hours }}, Задач: ${{ steps.stats.outputs.tasks }}" >> progress-history.txt

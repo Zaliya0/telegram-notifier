@@ -1,22 +1,12 @@
-name: Список дел на день
+name: Напоминание о расписании
 
 on:
   schedule:
-    - cron: '0 8 * * *'          # каждый день в 8:00 UTC
+    - cron: '30 7 * * 1-5'   # 7:30 UTC, понедельник–пятница
   workflow_dispatch:
-    inputs:
-      category:
-        description: 'Категория задач'
-        required: false
-        default: 'ежедневные'
-        type: choice
-        options:
-          - ежедневные
-          - учебные
-          - личные
 
 jobs:
-  send-todo:
+  send-schedule:
     runs-on: ubuntu-latest
     steps:
       - name: Загружаем репозиторий
@@ -39,21 +29,31 @@ jobs:
             echo "❌ TELEGRAM_BOT_TOKEN НЕ ЗАДАН или пуст!"
           fi
 
-      - name: Формируем список задач
-        id: tasks
+      - name: Определяем день недели
+        id: day_of_week
         run: |
-          CATEGORY="${{ github.event.inputs.category || 'ежедневные' }}"
-          if ! jq -e ".\"$CATEGORY\"" tasks.json > /dev/null 2>&1; then
-            echo "❌ Категория '$CATEGORY' не найдена в tasks.json"
-            exit 1
+          DAY_NUM=$(date +%u)
+          case $DAY_NUM in
+            1) echo "day=понедельник" ;;
+            2) echo "day=вторник" ;;
+            3) echo "day=среда" ;;
+            4) echo "day=четверг" ;;
+            5) echo "day=пятница" ;;
+            6) echo "day=суббота" ;;
+            7) echo "day=воскресенье" ;;
+          esac >> $GITHUB_OUTPUT
+
+      - name: Формируем расписание
+        id: schedule
+        run: |
+          DAY="${{ steps.day_of_week.outputs.day }}"
+          if jq -e ".\"$DAY\"" schedule.json > /dev/null 2>&1; then
+            SCHEDULE=$(jq -r ".\"$DAY\"[] | \"• \(.time) - \(.subject) (ауд. \(.room))\"" schedule.json)
+            MESSAGE="<b>РАСПИСАНИЕ НА $DAY</b>%0A%0A$SCHEDULE"
+          else
+            MESSAGE="<b>ПАР НЕТ!</b> Можно отдохнуть."
           fi
-          TASKS=$(jq -r ".\"$CATEGORY\"" tasks.json)
-          # Собираем сообщение с HTML-форматированием
-          MESSAGE="<b>СПИСОК ДЕЛ НА СЕГОДНЯ</b>%0AКатегория: $CATEGORY%0A%0A<b>Задачи:</b>"
-          while IFS= read -r task; do
-            MESSAGE="$MESSAGE%0A• $task"
-          done <<< "$(echo "$TASKS" | jq -r '.[]')"
-          MESSAGE="$MESSAGE%0A%0A<i>Отмечайте выполненные задачи!</i>"
+          # Экранируем для передачи в curl (перенос строки уже %0A)
           echo "message=$MESSAGE" >> $GITHUB_OUTPUT
 
       # ========== ОТПРАВКА С ДИАГНОСТИКОЙ ==========
@@ -70,7 +70,7 @@ jobs:
             echo "❌ ОШИБКА: BOT_TOKEN пуст. Проверьте секрет TELEGRAM_BOT_TOKEN"
             exit 1
           fi
-          MESSAGE="${{ steps.tasks.outputs.message }}"
+          MESSAGE="${{ steps.schedule.outputs.message }}"
           if [ -z "$MESSAGE" ]; then
             echo "❌ ОШИБКА: сообщение пустое"
             exit 1
