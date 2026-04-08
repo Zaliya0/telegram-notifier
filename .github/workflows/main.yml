@@ -1,10 +1,9 @@
-name: Habit Tracker Telegram Notifier
+name: Трекер привычек
 
 on:
   schedule:
-    # Каждый день в 9:00 (можно изменить)
     - cron: '0 9 * * *'
-  workflow_dispatch:  # для ручного запуска
+  workflow_dispatch:
 
 jobs:
   run:
@@ -13,61 +12,57 @@ jobs:
       - name: Загружаем код
         uses: actions/checkout@v4
 
-      - name: Читаем привычки из конфига
-        id: config
+      - name: Устанавливаем jq
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
-          
-          # Читаем все привычки из config.json
-          HABITS=$(jq -r '.habits[]' habits.json)
-          echo "habits=$HABITS" >> $GITHUB_OUTPUT
 
-      - name: Проверяем выполнение привычек
-        id: check
-        run: |
-          # Создаём файл с прогрессом если его нет
-          if [ ! -f progress.json ]; then
-            echo '{"streaks": {}}' > progress.json
-          fi
-          
-          # Здесь можно добавить логику проверки
-          # Например, чтение из внешнего API или проверка данных
-          
-          COMPLETED=""
-          MISSED=""
-          
-          # Пример: читаем привычки и проверяем статус
-          for habit in $(echo '${{ steps.config.outputs.habits }}'); do
-            # Ваша логика проверки выполнения привычки
-            # Например: curl к вашему API или проверка файла
-            echo "Проверяем привычку: $habit"
-          done
-
-      - name: Генерируем сообщение для Telegram
+      - name: Генерируем сообщение с привычками
         id: message
         run: |
-          # Читаем прогресс
-          TODAY=$(date +"%Y-%m-%d")
-          STREAKS=$(jq -r '.streaks' progress.json 2>/dev/null || echo "{}")
+          # Проверяем наличие файла
+          if [ ! -f habits.json ]; then
+            echo '{"project_name": "Трекер привычек", "habits": ["Сходить в зал", "Выпить 2 литра колы", "Посидеть в тиктоке 67 минут", "Повторить молодежные зумерские слова"], "reminder_time": "09:00", "weekly_goal": 4}' > habits.json
+          fi
           
-          # Генерируем красивое сообщение
-          MESSAGE="📊 *Ежедневный отчёт о привычках* 📊%0A%0A"
-          MESSAGE="${MESSAGE}📅 Дата: $(date +'%d.%m.%Y')%0A"
-          MESSAGE="${MESSAGE}🔥 *Текущие серии:*%0A"
+          # Читаем данные из JSON
+          PROJECT_NAME=$(jq -r '.project_name' habits.json)
+          WEEKLY_GOAL=$(jq -r '.weekly_goal' habits.json)
           
-          # Добавляем информацию о сериях
-          for habit in $(echo '${{ steps.config.outputs.habits }}'); do
-            STREAK=$(echo "$STREAKS" | jq -r ".\"$habit\" // 0")
-            MESSAGE="${MESSAGE}• $habit: $STREAK дней%0A"
+          # Формируем сообщение
+          MESSAGE="🎯 *$PROJECT_NAME* 🎯%0A"
+          MESSAGE="${MESSAGE}━━━━━━━━━━━━━━━━━━━━━%0A%0A"
+          MESSAGE="${MESSAGE}📅 *Дата:* $(date +'%d.%m.%Y')%0A"
+          MESSAGE="${MESSAGE}🎯 *Цель на неделю:* $WEEKLY_GOAL/7 дней%0A%0A"
+          
+          MESSAGE="${MESSAGE}✅ *Список привычек на сегодня:*%0A%0A"
+          
+          # Добавляем каждую привычку с эмодзи
+          counter=1
+          for habit in $(jq -r '.habits[]' habits.json); do
+            case $habit in
+              *"зал"*) emoji="💪" ;;
+              *"колы"*) emoji="🥤" ;;
+              *"тикток"*) emoji="📱" ;;
+              *"зумер"*) emoji="😎" ;;
+              *) emoji="✅" ;;
+            esac
+            MESSAGE="${MESSAGE}$emoji $counter. $habit%0A"
+            counter=$((counter + 1))
           done
           
-          MESSAGE="${MESSAGE}%0A✅ *Сегодня нужно сделать:*%0A"
-          for habit in $(echo '${{ steps.config.outputs.habits }}'); do
-            MESSAGE="${MESSAGE}• $habit%0A"
-          done
+          MESSAGE="${MESSAGE}%0A━━━━━━━━━━━━━━━━━━━━━%0A"
+          MESSAGE="${MESSAGE}🔥 *Мотивация на сегодня:*%0A"
+          MESSAGE="${MESSAGE}«Маленькие шаги каждый день ведут к большим результатам!»%0A%0A"
           
-          echo "text=$MESSAGE" >> $GITHUB_OUTPUT
+          MESSAGE="${MESSAGE}#трекерпривычек #продуктивность"
+          
+          # Сохраняем в output
+          {
+            echo "text<<EOF"
+            echo "$MESSAGE"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Отправляем в Telegram
         run: |
@@ -76,40 +71,12 @@ jobs:
             -d text="${{ steps.message.outputs.text }}" \
             -d parse_mode="Markdown"
 
-      - name: Обновляем прогресс (если получили ответ от пользователя)
-        id: update
+      - name: Сохраняем историю отправок
         run: |
-          # Здесь можно добавить логику получения ответа от Telegram
-          # Например, через webhook или отдельный бот
-          
-          # Пример: обновление прогресса вручную через файл
-          TODAY=$(date +"%Y-%m-%d")
-          
-          # Читаем текущий прогресс
-          if [ -f progress.json ]; then
-            STREAKS=$(jq '.streaks' progress.json)
-          else
-            STREAKS="{}"
-          fi
-          
-          # Обновляем серии (пример для одной привычки)
-          # Если привычка выполнена сегодня, увеличиваем счётчик
-          # Иначе сбрасываем
-          
-          echo "$STREAKS" > progress.json
-
-      - name: Сохраняем историю в Git
-        run: |
-          # Сохраняем историю выполнения
-          TODAY=$(date +"%Y-%m-%d %H:%M:%S")
-          echo "$TODAY: Проверка привычек выполнена" >> history.log
-          
-          # Сохраняем прогресс в CSV для аналитики
-          echo "$(date +"%Y-%m-%d"),$(jq -r '.streaks | to_entries | map("\(.key)=\(.value)") | join(",")' progress.json 2>/dev/null)" >> analytics.csv
+          echo "$(date '+%Y-%m-%d %H:%M:%S'): Отправлен отчёт о привычках" >> history.log
           
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
-          
-          git add history.log progress.json analytics.csv
-          git commit -m "Обновление трекера привычек $(date +'%Y-%m-%d')" || echo "Нет изменений"
+          git add history.log
+          git commit -m "📊 Обновление трекера привычек $(date +'%Y-%m-%d')" || echo "Нет изменений"
           git push || echo "Нечего пушить"
