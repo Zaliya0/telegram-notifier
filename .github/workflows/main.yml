@@ -18,24 +18,38 @@ jobs:
           sudo apt-get install -y jq
 
       - name: Генерируем сообщение с привычками
-        id: message
-        run: |
-          # Проверяем наличие файла
-          if [ ! -f habits.json ]; then
-            echo '{"project_name": "Трекер привычек", "habits": ["Сходить в зал", "Выпить 2 литра колы", "Посидеть в тиктоке 67 минут", "Повторить молодежные зумерские слова"], "reminder_time": "09:00", "weekly_goal": 4}' > habits.json
-          fi
-          
-          # Читаем данные из JSON
-          PROJECT_NAME=$(jq -r '.project_name' habits.json)
-          WEEKLY_GOAL=$(jq -r '.weekly_goal' habits.json)
-          
-          # Формируем сообщение
-          MESSAGE="🎯 *$PROJECT_NAME* 🎯%0A"
-          MESSAGE="${MESSAGE}━━━━━━━━━━━━━━━━━━━━━%0A%0A"
-          MESSAGE="${MESSAGE}📅 *Дата:* $(date +'%d.%m.%Y')%0A"
-          MESSAGE="${MESSAGE}🎯 *Цель на неделю:* $WEEKLY_GOAL/7 дней%0A%0A"
-          
-          MESSAGE="${MESSAGE}✅ *Список привычек на сегодня:*%0A%0A"
+       id: message
+  run: |
+    PROJECT_NAME=$(jq -r '.project_name' habits.json)
+    WEEKLY_GOAL=$(jq -r '.weekly_goal' habits.json)
+    
+    MESSAGE="🎯 *$PROJECT_NAME* 🎯%0A"
+    MESSAGE="${MESSAGE}━━━━━━━━━━━━━━━━━━━━━%0A%0A"
+    MESSAGE="${MESSAGE}📅 *Дата: $(date +'%d.%m.%Y')*%0A"
+    MESSAGE="${MESSAGE}🎯 *Цель на неделю:* $WEEKLY_GOAL/7 дней%0A%0A"
+    
+    MESSAGE="${MESSAGE}✅ *Список привычек на сегодня:*%0A%0A"
+    
+    # ПРАВИЛЬНЫЙ СПОСОБ - через while read
+    counter=1
+    jq -r '.habits[]' habits.json | while IFS= read -r habit; do
+      # Выбираем эмодзи
+      case $habit in
+        *"зал"*) emoji="💪" ;;
+        *"колы"*) emoji="🥤" ;;
+        *"тикток"*) emoji="📱" ;;
+        *"зумер"*|*"молодеж"*) emoji="😎" ;;
+        *) emoji="✅" ;;
+      esac
+      MESSAGE="${MESSAGE}$emoji $counter. $habit%0A"
+      counter=$((counter + 1))
+    done
+    
+    {
+      echo "text<<EOF"
+      echo "$MESSAGE"
+      echo "EOF"
+    } >> "$GITHUB_OUTPUT"
           
           # Добавляем каждую привычку с эмодзи
           counter=1
@@ -53,9 +67,9 @@ jobs:
           
           MESSAGE="${MESSAGE}%0A━━━━━━━━━━━━━━━━━━━━━%0A"
           MESSAGE="${MESSAGE}🔥 *Мотивация на сегодня:*%0A"
-          MESSAGE="${MESSAGE}«Маленькие шаги каждый день ведут к большим результатам!»%0A%0A"
+          MESSAGE="${MESSAGE}«надо делать чтобы достичь прайма»%0A%0A"
           
-          MESSAGE="${MESSAGE}#трекерпривычек #продуктивность"
+          MESSAGE="${MESSAGE}#программисты #раяназалина #аурафарминг"
           
           # Сохраняем в output
           {
